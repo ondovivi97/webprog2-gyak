@@ -1,0 +1,32 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white">
+  <div class="container">
+    <!-- Logo / Bal felső sarok -->
+    <a class="navbar-brand" href="/">
+      🍽️ Receptek
+    </a>
+
+    <!-- Jobb oldali menüpontok -->
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link <%= title === 'Főoldal' ? 'active' : '' %>" href="/">Főoldal</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= title === 'Receptek' ? 'active' : '' %>" href="/receptek">Receptek</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= title === 'Autentikáció' ? 'active' : '' %>" href="/autentikacio">Autentikáció</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= title === 'Kapcsolat' ? 'active' : '' %>" href="/kapcsolat">Kapcsolat</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= title === 'Üzenetek' ? 'active' : '' %>" href="/uzenetek">Üzenetek</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= title === 'CRUD' ? 'active' : '' %>" href="/crud">CRUD</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

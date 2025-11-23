@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Hozzávalók</title>
+    <link rel="stylesheet" href="/css/yummy-red.css">
+</head>
+<body>
+
+<%- include('partials/header') %>
+
+<main>
+    <h2>Hozzávalók</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Név</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% hozzavalok.forEach(h => { %>
+            <tr>
+                <td><%= h.id %></td>
+                <td><%= h.nev %></td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</main>
+
+<%- include('partials/footer') %>
+
+</body>
+</html>

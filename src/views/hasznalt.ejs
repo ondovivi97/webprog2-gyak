@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Használt hozzávalók</title>
+    <link rel="stylesheet" href="/css/yummy-red.css">
+</head>
+<body>
+
+<%- include('partials/header') %>
+
+<main>
+    <h2>Használt hozzávalók</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Mennyiség</th>
+                <th>Egység</th>
+                <th>Étel ID</th>
+                <th>Hozzávaló ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% hasznalt.forEach(h => { %>
+            <tr>
+                <td><%= h.mennyiseg || '' %></td>
+                <td><%= h.egyseg || '' %></td>
+                <td><%= h.etelid %></td>
+                <td><%= h.hozzavaloid %></td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</main>
+
+<%- include('partials/footer') %>
+
+</body>
+</html>

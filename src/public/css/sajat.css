@@ -1,0 +1,33 @@
+/* Header fehér, fix padding */
+header {
+    background-color: #ffffff;
+    padding: 15px 0;
+}
+
+/* Footer fehér, fix padding */
+footer {
+    background-color: #ffffff;
+    padding: 15px 0;
+}
+
+/* Main teljes szélességben, vajszín */
+main.main-full {
+    background-color: color-mix(in srgb, var(--default-color), transparent 94%);
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* Képek középre */
+main.main-full .d-flex img {
+    display: block;
+    max-width: 200px;
+    margin: 0 10px;
+}
+
+.main-images img {
+    width: 200px;      /* fix szélesség */
+    height: 200px;     /* fix magasság */
+    object-fit: cover; /* megtartja az arányt, és levágja a felesleget, ha kell */
+    margin: 10px;      /* kis távolság a képek között */
+}
