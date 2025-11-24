@@ -48,11 +48,55 @@ app.get('/autentikacio', (req, res) => {
 });
 
 // ------------------------
-// Kapcsolat
+// Kapcsolat (GET) - űrlap megjelenítése
 // ------------------------
 app.get('/kapcsolat', (req, res) => {
-    res.render('kapcsolat', { title: 'Kapcsolat' });
+    res.render('kapcsolat', {
+        title: 'Kapcsolat',
+        success: null,
+        errors: [],
+        values: {}
+    });
 });
+
+
+
+// ------------------------
+// Kapcsolat (POST) - űrlap beküldése, mentés DB-be
+// ------------------------
+app.post('/kapcsolat', async (req, res) => {
+  try {
+    const { nev, email, telefon, uzenet } = req.body;
+
+    // Egyszerű szerveroldali validálás
+    const errors = [];
+    if (!nev || nev.trim().length < 2) errors.push('Kérlek add meg a nevet (min. 2 karakter).');
+    if (!uzenet || uzenet.trim().length < 5) errors.push('Az üzenet túl rövid (min. 5 karakter).');
+    // opcionális: email formátum ellenőrzés
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('Érvénytelen e-mail cím.');
+
+    if (errors.length > 0) {
+      return res.render('kapcsolat', { title: 'Kapcsolat', errors, values: { nev, email, telefon, uzenet } });
+    }
+
+    // IP cím (opcionális)
+    //const bekuldo_ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || null;
+
+    // SQL beszúrás (paraméterezve)
+    await db.query(
+      'INSERT INTO uzenetek (nev, email, telefon, uzenet, bekuldo_ip) VALUES (?, ?, ?, ?, ?)',
+      [nev.trim(), email ? email.trim() : null, telefon ? telefon.trim() : null, uzenet.trim(), bekuldo_ip]
+    );
+
+    // Visszajelzés (köszönő oldalra vagy ugyanarra az oldalra sikerüzenettel)
+    res.render('kapcsolat', { title: 'Kapcsolat', success: 'Köszönjük, az üzeneted elmentésre került.', errors: [], values: {} });
+
+  } catch (err) {
+    console.error('Kapcsolat POST hiba:', err);
+    res.status(500).render('kapcsolat', { title: 'Kapcsolat', errors: ['Szerverhiba történt, próbáld később.'], values: req.body || {} });
+  }
+});
+
 
 // ------------------------
 // Üzenetek
