@@ -14,9 +14,25 @@
         <li class="nav-item">
           <a class="nav-link <%= title === 'Receptek' ? 'active' : '' %>" href="/receptek">Receptek</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link <%= title === 'Autentikáció' ? 'active' : '' %>" href="/autentikacio">Autentikáció</a>
-        </li>
+   <% if (!user) { %>
+  <li class="nav-item">
+    <a class="nav-link <%= title === 'Regisztráció' ? 'active' : '' %>" href="/regisztracio">Regisztráció</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link <%= title === 'Bejelentkezés' ? 'active' : '' %>" href="/login">Bejelentkezés</a>
+  </li>
+<% } else { %>
+  <li class="nav-item">
+    <a class="nav-link" href="/logout">Kijelentkezés</a>
+  </li>
+  <% if (user.szerep === 'admin') { %>
+    <li class="nav-item">
+      <a class="nav-link <%= title === 'Admin' ? 'active' : '' %>" href="/admin">Admin</a>
+    </li>
+  <% } %>
+<% } %>
+
+
         <li class="nav-item">
           <a class="nav-link <%= title === 'Kapcsolat' ? 'active' : '' %>" href="/kapcsolat">Kapcsolat</a>
         </li>

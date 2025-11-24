@@ -9,6 +9,25 @@ const port = 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const session = require('express-session');
+const flash = require('connect-flash');
+
+app.use(session({
+    secret: 'valamiTitkosKulcs123',
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(flash());
+
+// Globális változók a sablonokhoz
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
+});
+
 // Statikus fájlok (CSS, JS, képek) – most a src/public mappát használja
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -40,12 +59,124 @@ app.get('/receptek', async (req, res) => {
     }
 });
 
+
+const bcrypt = require('bcryptjs');
+
 // ------------------------
-// Autentikáció
+// Regisztráció (GET) – űrlap megjelenítés
 // ------------------------
-app.get('/autentikacio', (req, res) => {
-    res.render('autentikacio', { title: 'Autentikáció' });
+app.get('/regisztracio', (req, res) => {
+    res.render('regisztracio', {
+        title: 'Regisztráció',
+        errors: [],
+        values: {}
+    });
 });
+
+// ------------------------
+// Regisztráció (POST)
+// ------------------------
+app.post('/regisztracio', async (req, res) => {
+    try {
+        const { nev, email, jelszo, jelszo2 } = req.body;
+        const errors = [];
+
+        // Validálás
+        if (!nev || nev.trim().length < 2) errors.push('A név minimum 2 karakter.');
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('Érvényes e-mail cím szükséges.');
+        if (!jelszo || jelszo.length < 6) errors.push('A jelszó minimum 6 karakter.');
+        if (jelszo !== jelszo2) errors.push('A jelszavak nem egyeznek.');
+
+        if (errors.length > 0) {
+            return res.render('regisztracio', { title: 'Regisztráció', errors, values: { nev, email } });
+        }
+
+        // Ellenőrizzük, hogy már van-e ilyen email
+        const [existing] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (existing.length > 0) {
+            errors.push('Ez az e-mail cím már regisztrálva van.');
+            return res.render('regisztracio', { title: 'Regisztráció', errors, values: { nev, email } });
+        }
+
+        // Jelszó hash-elése
+        const hashedPassword = await bcrypt.hash(jelszo, 10);
+
+        // Mentés az adatbázisba
+        await db.query('INSERT INTO users (nev, email, jelszo) VALUES (?, ?, ?)', [nev.trim(), email.trim(), hashedPassword]);
+
+        req.flash('success', 'Sikeres regisztráció! Most bejelentkezhetsz.');
+        res.redirect('/login');
+
+    } catch (err) {
+        console.error('Regisztráció hiba:', err);
+        res.render('regisztracio', { title: 'Regisztráció', errors: ['Szerverhiba, próbáld később.'], values: req.body });
+    }
+});
+
+// ------------------------
+// Bejelentkezés (GET) – űrlap megjelenítés
+// ------------------------
+app.get('/login', (req, res) => {
+    res.render('login', { title: 'Bejelentkezés', errors: [], values: {} });
+});
+
+// ------------------------
+// Bejelentkezés (POST)
+// ------------------------
+app.post('/login', async (req, res) => {
+    try {
+        const { email, jelszo } = req.body;
+        const errors = [];
+
+        if (!email || !jelszo) {
+            errors.push('Kérlek add meg az e-mail címet és a jelszót.');
+            return res.render('login', { title: 'Bejelentkezés', errors, values: { email } });
+        }
+
+        // Ellenőrizzük, hogy van-e ilyen user
+        const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (rows.length === 0) {
+            errors.push('Nincs ilyen felhasználó.');
+            return res.render('login', { title: 'Bejelentkezés', errors, values: { email } });
+        }
+
+        const user = rows[0];
+
+        // Jelszó ellenőrzés
+        const validPassword = await bcrypt.compare(jelszo, user.jelszo);
+        if (!validPassword) {
+            errors.push('Hibás jelszó.');
+            return res.render('login', { title: 'Bejelentkezés', errors, values: { email } });
+        }
+
+        // Bejelentkeztetés – session létrehozása
+        req.session.user = {
+            id: user.id,
+            nev: user.nev,
+            email: user.email,
+            szerep: user.szerep
+        };
+
+        req.flash('success', 'Sikeresen bejelentkeztél!');
+        res.redirect('/');
+
+    } catch (err) {
+        console.error('Bejelentkezés hiba:', err);
+        res.render('login', { title: 'Bejelentkezés', errors: ['Szerverhiba, próbáld később.'], values: req.body });
+    }
+});
+
+// ------------------------
+// Kijelentkezés
+// ------------------------
+app.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) console.error('Logout hiba:', err);
+        res.redirect('/');
+    });
+});
+
+
 
 // ------------------------
 // Kapcsolat (GET) - űrlap megjelenítése
