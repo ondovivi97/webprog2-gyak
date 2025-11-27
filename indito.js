@@ -19,7 +19,7 @@ function authRequired(req, res, next) {
     }
     next();
 }
-
+//komment
 app.use(session({
     secret: 'valamiTitkosKulcs123',
     resave: false,
