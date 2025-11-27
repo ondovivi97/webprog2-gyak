@@ -12,6 +12,14 @@ app.use(express.urlencoded({ extended: true }));
 const session = require('express-session');
 const flash = require('connect-flash');
 
+function authRequired(req, res, next) {
+    if (!req.session.user) {
+        req.flash('error', 'Előbb be kell jelentkezned!');
+        return res.redirect('/login');
+    }
+    next();
+}
+
 app.use(session({
     secret: 'valamiTitkosKulcs123',
     resave: false,
@@ -248,9 +256,25 @@ app.post('/kapcsolat', async (req, res) => {
 // ------------------------
 // Üzenetek
 // ------------------------
-app.get('/uzenetek', (req, res) => {
-    res.render('uzenetek', { title: 'Üzenetek' });
+app.get('/uzenetek', authRequired, async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT id, nev, email, telefon, uzenet, bekuldo_ip, bekuldve
+            FROM uzenetek
+            ORDER BY bekuldve DESC
+        `);
+
+        res.render('uzenetek', {
+            title: 'Üzenetek',
+            uzenetek: rows
+        });
+
+    } catch (err) {
+        console.error('Hiba az üzenetek lekérdezésénél:', err);
+        res.status(500).send('Hiba történt az üzenetek betöltésekor.');
+    }
 });
+
 
 // ------------------------
 // CRUD
