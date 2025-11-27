@@ -22,8 +22,7 @@
                 <th>Név</th>
                 <th>Kategória ID</th>
                 <th>Kategória név</th> 
-                <th>Felírdátum</th>
-                <th>Első dátum</th>
+                <th>Hozzávalók (mennyiségekkel együtt)</th>
             </tr>
         </thead>
         <tbody>
@@ -33,8 +32,7 @@
                 <td><%= etel.nev %></td>
                 <td><%= etel.kategoriaid %></td>
                 <td><%= etel.kategoria_nev %></td>
-                <td><%= etel.felirdatum || '' %></td>
-                <td><%= etel.elsodatum || '' %></td>
+                <td><%= etel.hozzavalok || '' %></td>
             </tr>
             <% }) %>
         </tbody>

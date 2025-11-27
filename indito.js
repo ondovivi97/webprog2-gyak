@@ -48,9 +48,25 @@ app.get('/', (req, res) => {
 app.get('/receptek', async (req, res) => {
     try {
         const [rows] = await db.query(`
-            SELECT e.id, e.nev, e.kategoriaid, k.nev AS kategoria_nev, e.felirdatum, e.elsodatum
+            SELECT 
+                e.id,
+                e.nev,
+                e.kategoriaid,
+                k.nev AS kategoria_nev,
+                IFNULL(
+                  GROUP_CONCAT(
+                    DISTINCT CONCAT(h.nev, ' (', COALESCE(hu.mennyiseg,''), 
+                                   IFNULL(CONCAT(' ', COALESCE(hu.egyseg,'')),''),
+                                   ')')
+                    ORDER BY h.nev SEPARATOR ', '
+                  ), ''
+                ) AS hozzavalok
             FROM etel e
             LEFT JOIN kategoria k ON e.kategoriaid = k.id
+            LEFT JOIN hasznalt hu ON hu.etelid = e.id
+            LEFT JOIN hozzavalo h ON hu.hozzavaloid = h.id
+            GROUP BY e.id, e.nev, e.kategoriaid, k.nev
+            ORDER BY e.id;
         `);
         res.render('etelek', { etelek: rows, title: 'Receptek' });
     } catch (err) {
