@@ -277,11 +277,80 @@ app.get('/uzenetek', authRequired, async (req, res) => {
 
 
 // ------------------------
-// CRUD
+// CRUD - Ételek listázása
 // ------------------------
-app.get('/crud', (req, res) => {
-    res.render('crud', { title: 'CRUD' });
+app.get('/crud', async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT e.id, e.nev, k.nev AS kategoria
+            FROM etel e
+            LEFT JOIN kategoria k ON e.kategoriaid = k.id
+            ORDER BY e.id
+        `);
+
+        res.render('crud', { title: 'CRUD – Ételek', etelek: rows });
+
+    } catch (err) {
+        console.error('CRUD hiba:', err);
+        res.status(500).send('Hiba a CRUD listázásnál.');
+    }
 });
+
+//From oldal get
+app.get('/crud/uj', async (req, res) => {
+    const [kategoriak] = await db.query('SELECT id, nev FROM kategoria');
+    res.render('crud-uj', { title: 'Új étel', kategoriak });
+});
+
+//CRUD UPDATE
+
+app.get('/crud/szerkesztes/:id', async (req, res) => {
+    const etelId = req.params.id;
+
+    const [[etel]] = await db.query('SELECT * FROM etel WHERE id = ?', [etelId]);
+    const [kategoriak] = await db.query('SELECT id, nev FROM kategoria');
+
+    res.render('crud-szerkesztes', {
+        title: 'Étel szerkesztése',
+        etel,
+        kategoriak
+    });
+});
+
+//POST
+app.post('/crud/szerkesztes/:id', async (req, res) => {
+    const etelId = req.params.id;
+    const { nev, kategoriaid } = req.body;
+
+    await db.query(
+        'UPDATE etel SET nev = ?, kategoriaid = ? WHERE id = ?',
+        [nev.trim(), kategoriaid, etelId]
+    );
+
+    res.redirect('/crud');
+});
+
+//CRUD DELETE
+app.get('/crud/torles/:id', async (req, res) => {
+    await db.query('DELETE FROM etel WHERE id = ?', [req.params.id]);
+    res.redirect('/crud');
+});
+
+
+
+//Beküldés Post
+app.post('/crud/uj', async (req, res) => {
+    const { nev, kategoriaid } = req.body;
+
+    await db.query('INSERT INTO etel (nev, kategoriaid) VALUES (?, ?)', [
+        nev.trim(),
+        kategoriaid
+    ]);
+
+    res.redirect('/crud');
+});
+
+
 
 // ------------------------
 // Kategóriák
