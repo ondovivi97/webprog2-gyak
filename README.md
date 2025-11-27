@@ -1,1 +1,1 @@
-# webprog2-gyak
+# Ez a feladat a Webprogramozás II. tantárgyhoz tartozó gyakorlati beadandó.
