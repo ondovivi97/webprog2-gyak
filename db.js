@@ -1,20 +1,24 @@
 const mysql = require('mysql2');
 
-// Kapcsolódás az adatbázishoz
+
 const pool = mysql.createPool({
-    host: 'localhost',       // vagy ha más a szerver IP: pl. '143.47.98.96'
-    user: 'student161',            // MySQL felhasználó
-    password: 'abc123',            // jelszó (ha van)
+    host: 'localhost',
+    user: 'studb162',      
+    password: 'abc123',    
     database: 'db162',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    charset: 'utf8mb4_hungarian_ci '
 });
 
-// Egyszerű query teszt (opcionális)
+// Teszt lekérdezés induláskor
 pool.query('SELECT 1 + 1 AS result', (err, results) => {
-    if (err) throw err;
-    console.log('DB kapcsolódás OK, teszt:', results[0].result);
+    if (err) {
+        console.error('DB kapcsolódási hiba:', err);
+    } else {
+        console.log('DB kapcsolódás OK, teszt:', results[0].result);
+    }
 });
 
-module.exports = pool.promise(); // használjuk promise-al a könnyebb async/await-et
+module.exports = pool.promise();

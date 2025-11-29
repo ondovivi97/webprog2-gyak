@@ -1,46 +1,51 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-white">
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4">
   <div class="container">
-    <!-- Logo / Bal felső sarok -->
-    <a class="navbar-brand" href="/">
+    <a class="navbar-brand" href="<%= basePath %>/">
       🍽️ Receptek
     </a>
 
-    <!-- Jobb oldali menüpontok -->
-    <div class="collapse navbar-collapse">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a class="nav-link <%= title === 'Főoldal' ? 'active' : '' %>" href="/">Főoldal</a>
+          <a class="nav-link <%= title === 'Főoldal' ? 'active' : '' %>" href="<%= basePath %>/">Főoldal</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= title === 'Receptek' ? 'active' : '' %>" href="/receptek">Receptek</a>
+          <a class="nav-link <%= title === 'Receptek' ? 'active' : '' %>" href="<%= basePath %>/receptek">Receptek</a>
         </li>
-   <% if (!user) { %>
-  <li class="nav-item">
-    <a class="nav-link <%= title === 'Regisztráció' ? 'active' : '' %>" href="/regisztracio">Regisztráció</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link <%= title === 'Bejelentkezés' ? 'active' : '' %>" href="/login">Bejelentkezés</a>
-  </li>
-<% } else { %>
-  <li class="nav-item">
-    <a class="nav-link" href="/logout">Kijelentkezés</a>
-  </li>
-  <% if (user.szerep === 'admin') { %>
-    <li class="nav-item">
-      <a class="nav-link <%= title === 'Admin' ? 'active' : '' %>" href="/admin">Admin</a>
-    </li>
-  <% } %>
-<% } %>
 
+        <% if (!user) { %>
+          <li class="nav-item">
+            <a class="nav-link <%= title === 'Regisztráció' ? 'active' : '' %>" href="<%= basePath %>/regisztracio">Regisztráció</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= title === 'Bejelentkezés' ? 'active' : '' %>" href="<%= basePath %>/login">Bejelentkezés</a>
+          </li>
+        <% } else { %>
+          <li class="nav-item">
+            <span class="navbar-text me-2">Szia, <strong><%= user.nev %></strong>!</span>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="<%= basePath %>/logout">Kijelentkezés</a>
+          </li>
+          <% if (user.szerep === 'admin') { %>
+            <li class="nav-item">
+              <a class="nav-link <%= title === 'Admin' ? 'active' : '' %>" href="<%= basePath %>/admin">Admin</a>
+            </li>
+          <% } %>
+        <% } %>
 
         <li class="nav-item">
-          <a class="nav-link <%= title === 'Kapcsolat' ? 'active' : '' %>" href="/kapcsolat">Kapcsolat</a>
+          <a class="nav-link <%= title === 'Kapcsolat' ? 'active' : '' %>" href="<%= basePath %>/kapcsolat">Kapcsolat</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= title === 'Üzenetek' ? 'active' : '' %>" href="/uzenetek">Üzenetek</a>
+          <a class="nav-link <%= title === 'Üzenetek' ? 'active' : '' %>" href="<%= basePath %>/uzenetek">Üzenetek</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= title === 'CRUD' ? 'active' : '' %>" href="/crud">CRUD</a>
+          <a class="nav-link <%= title === 'CRUD – Ételek' ? 'active' : '' %>" href="<%= basePath %>/crud">CRUD</a>
         </li>
       </ul>
     </div>

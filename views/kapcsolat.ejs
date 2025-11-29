@@ -1,61 +1,51 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <title>Főoldal</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/sajat.css">
-    
+  <meta charset="UTF-8">
+  <title>Kapcsolat</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="<%= basePath %>/css/main.css">
+  <link rel="stylesheet" href="<%= basePath %>/css/sajat.css">
 </head>
 <body>
+  <%- include('partials/header') %>
 
-<%- include('partials/header') %>
+  <main class="container mt-4">
+    <h2 class="mb-3">Kapcsolat</h2>
 
-<main class="container my-5">
-  <h2 class="mb-4">Kapcsolat</h2>
+    <% if (errors && errors.length) { %>
+      <% errors.forEach(e => { %>
+        <div class="alert alert-danger"><%= e %></div>
+      <% }) %>
+    <% } %>
 
-  <% if (success) { %>
-    <div class="alert alert-success"><%= success %></div>
-  <% } %>
+    <% if (success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
 
-  <% if (errors && errors.length > 0) { %>
-    <div class="alert alert-danger">
-      <ul class="mb-0">
-        <% errors.forEach(err => { %><li><%= err %></li><% }) %>
-      </ul>
-    </div>
-  <% } %>
+    <form action="<%= basePath %>/kapcsolat" method="POST">
+      <div class="mb-3">
+        <label for="nev" class="form-label">Név</label>
+        <input type="text" name="nev" id="nev" class="form-control" value="<%= values.nev || '' %>" required>
+      </div>
 
-  <form action="/kapcsolat" method="POST" class="row g-3">
-    <div class="col-md-6">
-      <label for="nev" class="form-label">Név *</label>
-      <input type="text" class="form-control" id="nev" name="nev" required value="<%= values.nev || '' %>">
-    </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email (opcionális)</label>
+        <input type="email" name="email" id="email" class="form-control" value="<%= values.email || '' %>">
+      </div>
 
-    <div class="col-md-6">
-      <label for="email" class="form-label">E-mail</label>
-      <input type="email" class="form-control" id="email" name="email" value="<%= values.email || '' %>">
-    </div>
+      <div class="mb-3">
+        <label for="telefon" class="form-label">Telefon (opcionális)</label>
+        <input type="text" name="telefon" id="telefon" class="form-control" value="<%= values.telefon || '' %>">
+      </div>
 
-    <div class="col-md-6">
-      <label for="telefon" class="form-label">Telefonszám</label>
-      <input type="text" class="form-control" id="telefon" name="telefon" value="<%= values.telefon || '' %>">
-    </div>
+      <div class="mb-3">
+        <label for="uzenet" class="form-label">Üzenet</label>
+        <textarea name="uzenet" id="uzenet" rows="5" class="form-control" required><%= values.uzenet || '' %></textarea>
+      </div>
 
-    <div class="col-12">
-      <label for="uzenet" class="form-label">Üzenet *</label>
-      <textarea class="form-control" id="uzenet" name="uzenet" rows="6" required><%= values.uzenet || '' %></textarea>
-    </div>
-
-    <div class="col-12">
-      <button type="submit" class="btn btn-primary">Küldés</button>
-    </div>
-  </form>
-</main>
-
-<%- include('partials/footer') %>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+      <button type="submit" class="btn btn-primary">Üzenet küldése</button>
+    </form>
+  </main>
 </body>
 </html>
