@@ -1,18 +1,17 @@
 const mysql = require('mysql2');
 
-
+// Kapcsolódás az adatbázishoz
 const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'studb162',      
-    password: 'abc123',    
-    database: 'db162',
+    host: 'localhost',       // ugyanazon a szerveren fut a MariaDB
+    user: 'studb162',        // a TE adatbázis felhasználód
+    password: 'abc123',      // ha nem változtattad meg
+    database: 'db162',       // a TE adatbázisod
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0,
-    charset: 'utf8mb4_hungarian_ci '
+    queueLimit: 0
 });
 
-// Teszt lekérdezés induláskor
+// Egyszerű query teszt (opcionális)
 pool.query('SELECT 1 + 1 AS result', (err, results) => {
     if (err) {
         console.error('DB kapcsolódási hiba:', err);
