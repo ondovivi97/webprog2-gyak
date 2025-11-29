@@ -13,25 +13,30 @@
     <main class="container mt-5">
         <h2 class="mb-4">Regisztráció</h2>
 
+        <!-- Hibák -->
         <% if (errors && errors.length > 0) { %>
             <% errors.forEach(error => { %>
-                <button type="button" class="btn btn-outline-primary mb-2"><%= error %></button>
+                <div class="alert alert-danger"><%= error %></div>
             <% }) %>
         <% } %>
 
+        <!-- Siker üzenet -->
         <% if (success) { %>
-            <button type="button" class="btn btn-outline-success mb-2"><%= success %></button>
+            <div class="alert alert-success"><%= success %></div>
         <% } %>
 
         <form action="/regisztracio" method="POST" class="mt-3">
+
             <div class="mb-3">
                 <label for="nev" class="form-label">Név</label>
-                <input type="text" name="nev" id="nev" class="form-control" value="<%= values.nev || '' %>" required>
+                <input type="text" name="nev" id="nev" class="form-control"
+                       value="<%= values?.nev || '' %>" required>
             </div>
 
             <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" name="email" id="email" class="form-control" value="<%= values.email || '' %>" required>
+                <label for="email" class="form-label">Email cím</label>
+                <input type="email" name="email" id="email" class="form-control"
+                       value="<%= values?.email || '' %>" required>
             </div>
 
             <div class="mb-3">
