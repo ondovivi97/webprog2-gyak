@@ -2,7 +2,7 @@ const mysql = require('mysql2');
 
 // Kapcsolódás az adatbázishoz
 const pool = mysql.createPool({
-    host: '143.47.98.96',       // vagy ha más a szerver IP: pl. '143.47.98.96'
+    host: 'localhost',       // vagy ha más a szerver IP: pl. '143.47.98.96'
     user: 'student161',            // MySQL felhasználó
     password: 'abc123',            // jelszó (ha van)
     database: 'db162',
