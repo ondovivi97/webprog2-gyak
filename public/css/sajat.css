@@ -1,33 +1,193 @@
-/* Header fehér, fix padding */
-header {
-    background-color: #ffffff;
-    padding: 15px 0;
+/* GLOBAL ALAPSTÍLUSOK
+   ------------------------------------------- */
+
+/* Teljes oldal háttere – Dimension-szerű sötét gradient */
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: radial-gradient(circle at top, #4b5563 0, #111827 60%, #020617 100%);
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Footer fehér, fix padding */
-footer {
-    background-color: #ffffff;
-    padding: 15px 0;
+/* Linkek */
+a {
+  color: #38bdf8;
 }
 
-/* Main teljes szélességben, vajszín */
-main.main-full {
-    background-color: color-mix(in srgb, var(--default-color), transparent 94%);
-    margin: 0;
-    padding: 0;
-    width: 100%;
+a:hover {
+  color: #0ea5e9;
 }
 
-/* Képek középre */
-main.main-full .d-flex img {
-    display: block;
-    max-width: 200px;
-    margin: 0 10px;
+/* NAVBAR finomítás */
+.navbar {
+  background: rgba(15, 23, 42, 0.96) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
 }
 
-.main-images img {
-    width: 200px;      /* fix szélesség */
-    height: 200px;     /* fix magasság */
-    object-fit: cover; /* megtartja az arányt, és levágja a felesleget, ha kell */
-    margin: 10px;      /* kis távolság a képek között */
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.navbar .nav-link {
+  color: #e5e7eb !important;
+}
+
+.navbar .nav-link.active {
+  color: #f97316 !important;
+  font-weight: 600;
+}
+
+/* FŐ TARTALOM – minden oldalra, ahol <main class="container ..."> van
+   (login, regisztráció, kapcsolat, CRUD, stb.) */
+main.container {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 1.5rem;
+  padding: 2.5rem 3rem;
+  margin-top: 3.5rem;
+  margin-bottom: 3.5rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+}
+
+/* Ha van még egy extra mt-5 class, ne legyen túl nagy a felső margó */
+main.container.mt-5 {
+  margin-top: 3.5rem !important;
+}
+
+/* Címsorok, szövegek a sötét dobozban */
+main.container h1,
+main.container h2,
+main.container h3,
+main.container h4,
+main.container h5,
+main.container h6 {
+  color: #f9fafb;
+}
+
+main.container p {
+  color: #e5e7eb;
+}
+
+/* Form label / inputok */
+.form-label,
+label {
+  color: #e5e7eb;
+}
+
+.form-control,
+.form-select,
+textarea.form-control {
+  background-color: rgba(15, 23, 42, 0.95);
+  border-color: rgba(148, 163, 184, 0.6);
+  color: #f9fafb;
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea.form-control:focus {
+  background-color: rgba(15, 23, 42, 0.98);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.25);
+  color: #f9fafb;
+}
+
+/* Gombok – maradjon bootstrap, de picit hangsúlyosabban */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #1d4ed8;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  border-color: #1e40af;
+}
+
+.btn-outline-primary {
+  color: #38bdf8;
+  border-color: #38bdf8;
+}
+
+.btn-outline-primary:hover {
+  color: #0f172a;
+  background-color: #38bdf8;
+  border-color: #38bdf8;
+}
+
+/* Siker / hiba üzenetek gomb-stílusban */
+.btn-outline-success {
+  color: #4ade80;
+  border-color: #4ade80;
+}
+
+.btn-outline-success:hover {
+  color: #0f172a;
+  background-color: #4ade80;
+  border-color: #4ade80;
+}
+
+/* TÁBLÁK – sötét mód */
+.table {
+  color: #e5e7eb;
+  background-color: transparent;
+}
+
+.table thead {
+  background-color: rgba(30, 64, 175, 0.85);
+}
+
+.table thead th {
+  border-color: rgba(15, 23, 42, 0.9);
+}
+
+.table tbody tr {
+  background-color: rgba(15, 23, 42, 0.85);
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: rgba(15, 23, 42, 0.7);
+}
+
+.table tbody td,
+.table tbody th {
+  border-color: rgba(55, 65, 81, 0.8);
+}
+
+/* Üzenetek táblázathoz kicsit szellősebb sorok */
+.table tbody tr td {
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+/* CRUD linkek/gombok */
+a.btn-sm,
+button.btn-sm {
+  font-size: 0.85rem;
+}
+
+/* FOOTER szöveg (index alján lévő) */
+.footer-text,
+main.container .small,
+main.container .text-muted {
+  color: #9ca3af !important;
+}
+
+/* Kisebb kijelzőn a main padding csökkenjen egy kicsit */
+@media (max-width: 768px) {
+  main.container {
+    padding: 1.75rem 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* Navbar logó színe, hogy jobban látszódjon a választott témával*/
+.navbar-brand {
+    color: #ffffff !important;
+}
+
+.navbar-brand:hover,
+.navbar-brand:focus {
+    color: #f8f9fa !important;
 }
