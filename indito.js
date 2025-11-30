@@ -403,10 +403,26 @@ app.get(BASE_PATH + '/crud', async (req, res) => {
         e.id,
         e.nev,
         e.kategoria_id,
-        k.nev AS kategoria_nev
+        k.nev AS kategoria_nev,
+        IFNULL(
+          GROUP_CONCAT(
+            DISTINCT CONCAT(
+              h.nev, ' (',
+              COALESCE(eh.mennyiseg, ''),
+              ' ',
+              COALESCE(eh.egyseg, ''),
+              ')'
+            )
+            ORDER BY h.nev SEPARATOR ', '
+          ),
+          ''
+        ) AS hozzavalok
       FROM etel e
       LEFT JOIN kategoria k ON e.kategoria_id = k.id
-      ORDER BY e.nev
+      LEFT JOIN etel_hozzavalo eh ON e.id = eh.etelid
+      LEFT JOIN hozzavalo h ON eh.hozzavaloid = h.id
+      GROUP BY e.id, e.nev, e.kategoria_id, k.nev
+      ORDER BY e.nev;
     `);
 
     res.render('crud', {
@@ -472,71 +488,129 @@ app.post(BASE_PATH + '/crud/szerkesztes/:id', async (req, res) => {
   res.redirect(BASE_PATH + '/crud');
 });
 
-// Étel törlése
-
+// Étel törlése (POST – pl. űrlapból)
 app.post(BASE_PATH + '/crud/torles/:id', async (req, res) => {
   const etelId = req.params.id;
   await db.query('DELETE FROM etel WHERE id = ?', [etelId]);
   res.redirect(BASE_PATH + '/crud');
 });
 
-
+// Étel törlése (GET – a "Törlés" linkhez)
 app.get(BASE_PATH + '/crud/torles/:id', async (req, res) => {
   const etelId = req.params.id;
   await db.query('DELETE FROM etel WHERE id = ?', [etelId]);
   res.redirect(BASE_PATH + '/crud');
 });
 
-// ------------------------
-// Használt hozzávalók
-// ------------------------
-app.get(BASE_PATH + '/hasznalt', async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT * FROM hasznalt');
-    res.render('hasznalt', {
-      title: 'Használt hozzávalók',
-      hasznalt: rows,
-    });
-  } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .send('Hiba a használt hozzávalók lekérdezésnél');
-  }
-});
 
 // ------------------------
-// Ételek + hozzávalók összesítve
+// CRUD – Hozzávalók egy ételhez
 // ------------------------
-app.get(BASE_PATH + '/etelek-hozzavalok', async (req, res) => {
-  try {
-    const [rows] = await db.query(`
-      SELECT
-        e.nev AS etel_nev,
-        k.nev AS kategoria_nev,
-        GROUP_CONCAT(
-          CONCAT(h.nev, ' (', COALESCE(eh.mennyiseg, ''), ' ', COALESCE(eh.egyseg, ''), ')')
-          SEPARATOR ', '
-        ) AS hozzavalok
-      FROM etel e
-      LEFT JOIN kategoria k ON e.kategoria_id = k.id
-      LEFT JOIN etel_hozzavalo eh ON e.id = eh.etelid
-      LEFT JOIN hozzavalo h ON eh.hozzavaloid = h.id
-      GROUP BY e.id, e.nev, k.nev
-      ORDER BY e.nev;
-    `);
 
-    res.render('etelek-hozzavalok', {
-      title: 'Ételek és hozzávalók',
-      lista: rows,
-    });
-  } catch (err) {
-    console.error('Hiba az összetett lekérdezésnél:', err);
-    res
-      .status(500)
-      .send('Hiba az összetett lekérdezésnél');
-  }
+// Hozzávalók szerkesztése oldal
+app.get(BASE_PATH + '/crud/hozzavalok/:id', async (req, res) => {
+  const etelId = req.params.id;
+
+  // az adott étel adatai
+  const [[etel]] = await db.query(
+    'SELECT id, nev FROM etel WHERE id = ?',
+    [etelId]
+  );
+
+  // az adott étel jelenlegi hozzávalói
+  const [aktualis] = await db.query(
+    `
+    SELECT 
+      eh.hozzavaloid,
+      h.nev,
+      eh.mennyiseg,
+      eh.egyseg
+    FROM etel_hozzavalo eh
+    JOIN hozzavalo h ON eh.hozzavaloid = h.id
+    WHERE eh.etelid = ?
+    ORDER BY h.nev;
+    `,
+    [etelId]
+  );
+
+  // összes elérhető hozzávaló a dropdownhoz
+  const [osszesHozzavalo] = await db.query(
+    'SELECT id, nev FROM hozzavalo ORDER BY nev'
+  );
+
+  res.render('crud-hozzavalok', {
+    title: 'Étel hozzávalói',
+    etel,
+    aktualis,
+    osszesHozzavalo,
+  });
 });
+
+// Új hozzávaló hozzárendelése egy ételhez
+app.post(BASE_PATH + '/crud/hozzavalok/:id/uj', async (req, res) => {
+  const etelId = req.params.id;
+  const { hozzavaloid, mennyiseg, egyseg } = req.body;
+
+  if (!hozzavaloid) {
+    return res.redirect(BASE_PATH + '/crud/hozzavalok/' + etelId);
+  }
+
+  // mennyiség számra konvertálása (üres esetén NULL)
+  let menny = null;
+  if (mennyiseg && mennyiseg.trim() !== '') {
+    const val = Number(mennyiseg.replace(',', '.'));
+    if (!Number.isNaN(val)) {
+      menny = val;
+    }
+  }
+
+  await db.query(
+    'INSERT INTO etel_hozzavalo (mennyiseg, egyseg, etelid, hozzavaloid) VALUES (?, ?, ?, ?)',
+    [menny, egyseg || null, etelId, hozzavaloid]
+  );
+
+  res.redirect(BASE_PATH + '/crud/hozzavalok/' + etelId);
+});
+
+// Meglévő hozzávaló módosítása (mennyiség/egység)
+app.post(BASE_PATH + '/crud/hozzavalok/:id/modosit/:hozzavaloid', async (req, res) => {
+  const etelId = req.params.id;
+  const hozzavaloId = req.params.hozzavaloid;
+  const { mennyiseg, egyseg } = req.body;
+
+  let menny = null;
+  if (mennyiseg && mennyiseg.trim() !== '') {
+    const val = Number(mennyiseg.replace(',', '.'));
+    if (!Number.isNaN(val)) {
+      menny = val;
+    }
+  }
+
+  await db.query(
+    `
+    UPDATE etel_hozzavalo
+    SET mennyiseg = ?, egyseg = ?
+    WHERE etelid = ? AND hozzavaloid = ?
+    `,
+    [menny, egyseg || null, etelId, hozzavaloId]
+  );
+
+  res.redirect(BASE_PATH + '/crud/hozzavalok/' + etelId);
+});
+
+// Hozzávaló törlése egy ételből
+app.get(BASE_PATH + '/crud/hozzavalok/:id/torles/:hozzavaloid', async (req, res) => {
+  const etelId = req.params.id;
+  const hozzavaloId = req.params.hozzavaloid;
+
+  await db.query(
+    'DELETE FROM etel_hozzavalo WHERE etelid = ? AND hozzavaloid = ?',
+    [etelId, hozzavaloId]
+  );
+
+  res.redirect(BASE_PATH + '/crud/hozzavalok/' + etelId);
+});
+
 
 // ------------------------
 // Admin oldal (csak adminnak)
