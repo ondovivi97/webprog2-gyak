@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
   <div class="container">
     <!-- Logo / Bal felső sarok -->
-    <a class="navbar-brand fw-bold" href="<%= basePath %>/" >
+    <a class="navbar-brand fw-bold" href="<%= basePath %>/">
       🍽️ Receptek
     </a>
 
@@ -9,9 +9,10 @@
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- Jobb oldali menüpontok -->
+    <!-- Menüsor -->
     <div class="collapse navbar-collapse" id="mainNav">
       <ul class="navbar-nav ms-auto">
+        <!-- Bal oldali fő menüpontok -->
         <li class="nav-item">
           <a class="nav-link <%= title === 'Főoldal' ? 'active' : '' %>" href="<%= basePath %>/">Főoldal</a>
         </li>
@@ -19,30 +20,6 @@
         <li class="nav-item">
           <a class="nav-link <%= title === 'Receptek' ? 'active' : '' %>" href="<%= basePath %>/receptek">Receptek</a>
         </li>
-
-        <% if (!user) { %>
-          <li class="nav-item">
-            <a class="nav-link <%= title === 'Regisztráció' ? 'active' : '' %>" href="<%= basePath %>/regisztracio">Regisztráció</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link <%= title === 'Bejelentkezés' ? 'active' : '' %>" href="<%= basePath %>/login">Bejelentkezés</a>
-          </li>
-        <% } else { %>
-          <li class="nav-item">
-            <span class="navbar-text me-2">
-              <i class="bi bi-person-circle"></i> <%= user.nev %>
-              <% if (user.szerep === 'admin') { %> (admin)<% } %>
-            </span>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="<%= basePath %>/logout">Kijelentkezés</a>
-          </li>
-          <% if (user.szerep === 'admin') { %>
-            <li class="nav-item">
-              <a class="nav-link <%= title === 'Admin' ? 'active' : '' %>" href="<%= basePath %>/admin">Admin</a>
-            </li>
-          <% } %>
-        <% } %>
 
         <li class="nav-item">
           <a class="nav-link <%= title === 'Kapcsolat' ? 'active' : '' %>" href="<%= basePath %>/kapcsolat">Kapcsolat</a>
@@ -57,6 +34,34 @@
         <li class="nav-item">
           <a class="nav-link <%= title === 'CRUD' ? 'active' : '' %>" href="<%= basePath %>/crud">CRUD</a>
         </li>
+
+        <!-- Jobb oldal: auth blokk -->
+        <% if (!user) { %>
+          <li class="nav-item">
+            <a class="nav-link <%= title === 'Regisztráció' ? 'active' : '' %>" href="<%= basePath %>/regisztracio">Regisztráció</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= title === 'Bejelentkezés' ? 'active' : '' %>" href="<%= basePath %>/login">Bejelentkezés</a>
+          </li>
+        <% } else { %>
+          <% if (user.szerep === 'admin') { %>
+            <li class="nav-item">
+              <a class="nav-link <%= title === 'Admin' ? 'active' : '' %>" href="<%= basePath %>/admin">Admin</a>
+            </li>
+          <% } %>
+
+          <!-- Kijelentkezés + felhasználónév közös kapszulában -->
+          <li class="nav-item ms-2">
+            <div class="d-flex align-items-center border border-warning rounded-pill px-3 py-1">
+              <a class="nav-link p-0 me-2" href="<%= basePath %>/logout">
+                Kijelentkezés
+              </a>
+              <span class="fw-bold text-warning">
+                - <%= user.nev %><% if (user.szerep === 'admin') { %> (admin)<% } %>
+              </span>
+            </div>
+          </li>
+        <% } %>
       </ul>
     </div>
   </div>
