@@ -13,8 +13,11 @@ const pool = mysql.createPool({
 
 // Egyszerű query teszt (opcionális)
 pool.query('SELECT 1 + 1 AS result', (err, results) => {
-    if (err) throw err;
-    console.log('DB kapcsolódás OK, teszt:', results[0].result);
+    if (err) {
+        console.error('DB kapcsolódási hiba:', err);
+    } else {
+        console.log('DB kapcsolódás OK, teszt:', results[0].result);
+    }
 });
 
-module.exports = pool.promise(); // használjuk promise-al a könnyebb async/await-et
+module.exports = pool.promise();

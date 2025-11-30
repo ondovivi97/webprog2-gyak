@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
   <meta charset="UTF-8">
-  <title>CRUD – Ételek</title>
+  <title>Receptek</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="<%= basePath %>/css/main.css">
   <link rel="stylesheet" href="<%= basePath %>/css/sajat.css">
@@ -10,11 +10,8 @@
 <body>
   <%- include('partials/header') %>
 
-  <main class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2>Ételek (CRUD)</h2>
-      <a href="<%= basePath %>/crud/uj" class="btn btn-success">Új étel</a>
-    </div>
+  <main class="container">
+    <h2 class="mb-4">Receptek</h2>
 
     <table class="table table-striped">
       <thead>
@@ -22,7 +19,7 @@
           <th>#</th>
           <th>Név</th>
           <th>Kategória</th>
-          <th>Műveletek</th>
+          <th>Hozzávalók</th>
         </tr>
       </thead>
       <tbody>
@@ -30,16 +27,14 @@
           <tr>
             <td><%= e.id %></td>
             <td><%= e.nev %></td>
-            <td><%= e.kategoria %></td>
-            <td>
-              <a href="<%= basePath %>/crud/szerkesztes/<%= e.id %>" class="btn btn-sm btn-primary">Szerkesztés</a>
-              <a href="<%= basePath %>/crud/torles/<%= e.id %>" class="btn btn-sm btn-danger"
-                 onclick="return confirm('Biztosan törlöd?');">Törlés</a>
-            </td>
+            <td><%= e.kategoria_nev %></td>
+            <td><%= e.hozzavalok %></td>
           </tr>
         <% }) %>
       </tbody>
     </table>
   </main>
+
+  <%- include('partials/footer') %>
 </body>
 </html>
