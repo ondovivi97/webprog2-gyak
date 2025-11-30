@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Hozzávalók</title>
-    <link rel="stylesheet" href="/css/yummy-red.css">
+    <link rel="stylesheet" href="<%= basePath %>/css/yummy-red.css">
 </head>
 <body>
 
@@ -11,11 +11,12 @@
 
 <main>
     <h2>Hozzávalók</h2>
-    <table class="table">
+    <table>
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Név</th>
+                <th>Egység</th>
             </tr>
         </thead>
         <tbody>
@@ -23,6 +24,7 @@
             <tr>
                 <td><%= h.id %></td>
                 <td><%= h.nev %></td>
+                <td><%= h.egyseg %></td>
             </tr>
             <% }) %>
         </tbody>

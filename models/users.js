@@ -1,15 +1,26 @@
-const mongoose = require('mongoose');
+// models/users.js
+const db = require('../db');
 
-const UserSchema = new mongoose.Schema({
-    // ... egyéb mezők (név, email, jelszó, stb.) ...
-    
-    role: {
-        type: String,
-        enum: ['admin', 'registered'], // Csak ez a két érték lehet az adatbázisban
-        default: 'registered' // Alapértelmezett beállítás regisztrációnál
+module.exports = {
+    // felhasználó keresése felhasználónév alapján
+    findByUsername: async function(username) {
+        const [rows] = await db.execute(
+            "SELECT * FROM users WHERE username = ? LIMIT 1",
+            [username]
+        );
+        return rows.length > 0 ? rows[0] : null;
     },
 
-    // ...
-});
+    // új felhasználó létrehozása
+    createUser: async function(username, password_hash, role = "registered") {
+        await db.execute(
+            "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+            [username, password_hash, role]
+        );
+    },
 
-module.exports = mongoose.model('User', UserSchema);
+    getAllUsers: async function() {
+        const [rows] = await db.execute("SELECT id, username, role FROM users");
+        return rows;
+    }
+};

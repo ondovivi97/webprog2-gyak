@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Használt hozzávalók</title>
-    <link rel="stylesheet" href="/css/yummy-red.css">
+    <link rel="stylesheet" href="<%= basePath %>/css/yummy-red.css">
 </head>
 <body>
 
@@ -11,11 +11,10 @@
 
 <main>
     <h2>Használt hozzávalók</h2>
-    <table class="table">
+    <table>
         <thead>
             <tr>
-                <th>Mennyiség</th>
-                <th>Egység</th>
+                <th>ID</th>
                 <th>Étel ID</th>
                 <th>Hozzávaló ID</th>
             </tr>
@@ -23,8 +22,7 @@
         <tbody>
             <% hasznalt.forEach(h => { %>
             <tr>
-                <td><%= h.mennyiseg || '' %></td>
-                <td><%= h.egyseg || '' %></td>
+                <td><%= h.id %></td>
                 <td><%= h.etelid %></td>
                 <td><%= h.hozzavaloid %></td>
             </tr>

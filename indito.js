@@ -27,7 +27,7 @@ app.use(
 );
 app.use(flash());
 
-// Statikus fájlok (mind /css, mind /app162/css működjön)
+// Statikus fájlok
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(BASE_PATH, express.static(path.join(__dirname, 'public')));
 
@@ -40,10 +40,7 @@ app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
-
-  // EJS sablonokhoz – mindenhol ezt használjuk: <%= basePath %>
   res.locals.basePath = BASE_PATH;
-
   next();
 });
 
@@ -56,6 +53,15 @@ function authRequired(req, res, next) {
   next();
 }
 
+// Admin auth middleware
+function adminRequired(req, res, next) {
+  if (!req.session.user || req.session.user.szerep !== 'admin') {
+    req.flash('error', 'Az oldal megtekintéséhez admin jogosultság szükséges.');
+    return res.redirect(BASE_PATH + '/');
+  }
+  next();
+}
+
 // ------------------------
 // Főoldal
 // ------------------------
@@ -64,7 +70,7 @@ app.get(BASE_PATH + '/', (req, res) => {
 });
 
 // ------------------------
-// Receptek
+// Receptek / összetett lista az etel + kategória + hozzávalók alapján
 // ------------------------
 app.get(BASE_PATH + '/receptek', async (req, res) => {
   try {
@@ -78,25 +84,66 @@ app.get(BASE_PATH + '/receptek', async (req, res) => {
           GROUP_CONCAT(
             DISTINCT CONCAT(
               h.nev, ' (',
-              COALESCE(hu.mennyiseg, ''),
-              IFNULL(CONCAT(' ', COALESCE(hu.egyseg, '')), ''),
+              COALESCE(eh.mennyiseg, ''),
+              ' ',
+              COALESCE(eh.egyseg, ''),
               ')'
             )
             ORDER BY h.nev SEPARATOR ', '
-          ), ''
+          ),
+          ''
         ) AS hozzavalok
       FROM etel e
-      LEFT JOIN kategoria k    ON e.kategoria_id = k.id
-      LEFT JOIN hasznalt hu    ON hu.etel_id      = e.id
-      LEFT JOIN hozzavalo h    ON hu.hozzavalo_id = h.id
+      LEFT JOIN kategoria k ON e.kategoria_id = k.id
+      LEFT JOIN etel_hozzavalo eh ON e.id = eh.etelid
+      LEFT JOIN hozzavalo h ON eh.hozzavaloid = h.id
       GROUP BY e.id, e.nev, e.kategoria_id, k.nev
-      ORDER BY e.id;
+      ORDER BY e.nev;
     `);
 
-    res.render('etelek', { etelek: rows, title: 'Receptek' });
+    res.render('receptek', {
+      title: 'Receptek',
+      receptek: rows,
+    });
   } catch (err) {
-    console.error('Hiba a receptek lekérdezésénél:', err);
-    res.status(500).send('Hiba a receptek lekérdezésénél.');
+    console.error('Hiba a receptek lekérdezésekor:', err);
+    res.status(500).send('Hiba a receptek lekérdezésekor');
+  }
+});
+
+// ------------------------
+// Kategóriák
+// ------------------------
+app.get(BASE_PATH + '/kategoria', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT id, nev, leiras FROM kategoria ORDER BY nev'
+    );
+    res.render('kategoria', {
+      title: 'Kategóriák',
+      kategoriak: rows,
+    });
+  } catch (err) {
+    console.error('Hiba a kategóriák lekérdezésekor:', err);
+    res.status(500).send('Hiba a kategóriák betöltésekor');
+  }
+});
+
+// ------------------------
+// Hozzávalók
+// ------------------------
+app.get(BASE_PATH + '/hozzavalo', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT id, nev, egyseg FROM hozzavalo ORDER BY nev'
+    );
+    res.render('hozzavalo', {
+      title: 'Hozzávalók',
+      hozzavalok: rows,
+    });
+  } catch (err) {
+    console.error('Hiba a hozzávalók lekérdezésekor:', err);
+    res.status(500).send('Hiba a hozzávalók betöltésekor');
   }
 });
 
@@ -122,10 +169,7 @@ app.post(BASE_PATH + '/regisztracio', async (req, res) => {
 
     if (!nev || nev.trim().length < 2)
       errors.push('A név minimum 2 karakter.');
-    if (
-      !email ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-    )
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       errors.push('Érvényes e-mail cím szükséges.');
     if (!jelszo || jelszo.length < 6)
       errors.push('A jelszó minimum 6 karakter.');
@@ -140,7 +184,6 @@ app.post(BASE_PATH + '/regisztracio', async (req, res) => {
       });
     }
 
-    // Van-e már ilyen email?
     const [existing] = await db.query(
       'SELECT id FROM users WHERE email = ?',
       [email.trim()]
@@ -157,7 +200,7 @@ app.post(BASE_PATH + '/regisztracio', async (req, res) => {
     const hashedPassword = await bcrypt.hash(jelszo, 10);
 
     await db.query(
-      "INSERT INTO users (nev, email, jelszo, szerep) VALUES (?, ?, ?, 'user')",
+      "INSERT INTO users (nev, email, jelszo, szerep) VALUES (?, ?, ?, 'registered')",
       [nev.trim(), email.trim(), hashedPassword]
     );
 
@@ -206,10 +249,10 @@ app.post(BASE_PATH + '/login', async (req, res) => {
 
     const [rows] = await db.query(
       'SELECT * FROM users WHERE email = ?',
-      [email.trim()]
+      [email]
     );
     if (rows.length === 0) {
-      errors.push('Nincs ilyen felhasználó.');
+      errors.push('Nincs ilyen e-mail címmel regisztrált felhasználó.');
       return res.render('login', {
         title: 'Bejelentkezés',
         errors,
@@ -255,7 +298,7 @@ app.post(BASE_PATH + '/login', async (req, res) => {
 // ------------------------
 app.get(BASE_PATH + '/logout', (req, res) => {
   req.session.destroy((err) => {
-    if (err) console.error('Logout hiba:', err);
+    if (err) console.error('Session destroy hiba:', err);
     res.redirect(BASE_PATH + '/');
   });
 });
@@ -273,7 +316,7 @@ app.get(BASE_PATH + '/kapcsolat', (req, res) => {
 });
 
 // ------------------------
-// Kapcsolat (POST)
+// Kapcsolat (POST) – üzenetek mentése uzenetek táblába
 // ------------------------
 app.post(BASE_PATH + '/kapcsolat', async (req, res) => {
   try {
@@ -281,14 +324,9 @@ app.post(BASE_PATH + '/kapcsolat', async (req, res) => {
     const errors = [];
 
     if (!nev || nev.trim().length < 2)
-      errors.push('Kérlek add meg a nevet (min. 2 karakter).');
+      errors.push('A név minimum 2 karakter.');
     if (!uzenet || uzenet.trim().length < 5)
-      errors.push('Az üzenet túl rövid (min. 5 karakter).');
-    if (
-      email &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-    )
-      errors.push('Érvénytelen e-mail cím.');
+      errors.push('Az üzenet minimum 5 karakter.');
 
     if (errors.length > 0) {
       return res.render('kapcsolat', {
@@ -299,7 +337,8 @@ app.post(BASE_PATH + '/kapcsolat', async (req, res) => {
       });
     }
 
-    const bekuldo_ip = req.headers['x-forwarded-for'] ||
+    const bekuldo_ip =
+      req.headers['x-forwarded-for'] ||
       req.socket.remoteAddress ||
       null;
 
@@ -332,7 +371,7 @@ app.post(BASE_PATH + '/kapcsolat', async (req, res) => {
 });
 
 // ------------------------
-// Üzenetek lista (auth kell)
+// Üzenetek lista (csak bejelentkezve)
 // ------------------------
 app.get(BASE_PATH + '/uzenetek', authRequired, async (req, res) => {
   try {
@@ -355,24 +394,28 @@ app.get(BASE_PATH + '/uzenetek', authRequired, async (req, res) => {
 });
 
 // ------------------------
-// CRUD – Ételek lista
+// CRUD – Ételek
 // ------------------------
 app.get(BASE_PATH + '/crud', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT e.id, e.nev, k.nev AS kategoria
+      SELECT 
+        e.id,
+        e.nev,
+        e.kategoria_id,
+        k.nev AS kategoria_nev
       FROM etel e
       LEFT JOIN kategoria k ON e.kategoria_id = k.id
-      ORDER BY e.id
+      ORDER BY e.nev
     `);
 
     res.render('crud', {
-      title: 'CRUD – Ételek',
+      title: 'CRUD',
       etelek: rows,
     });
   } catch (err) {
-    console.error('CRUD hiba:', err);
-    res.status(500).send('Hiba a CRUD listázásnál.');
+    console.error('Hiba a CRUD lista lekérdezésekor:', err);
+    res.status(500).send('Hiba a CRUD lista betöltésekor');
   }
 });
 
@@ -390,16 +433,14 @@ app.get(BASE_PATH + '/crud/uj', async (req, res) => {
 // Új étel (POST)
 app.post(BASE_PATH + '/crud/uj', async (req, res) => {
   const { nev, kategoriaid } = req.body;
-
   await db.query(
     'INSERT INTO etel (nev, kategoria_id) VALUES (?, ?)',
-    [nev.trim(), kategoriaid]
+    [nev, kategoriaid || null]
   );
-
   res.redirect(BASE_PATH + '/crud');
 });
 
-// Szerkesztés (GET)
+// Étel szerkesztése (GET)
 app.get(BASE_PATH + '/crud/szerkesztes/:id', async (req, res) => {
   const etelId = req.params.id;
 
@@ -418,65 +459,32 @@ app.get(BASE_PATH + '/crud/szerkesztes/:id', async (req, res) => {
   });
 });
 
-// Szerkesztés (POST)
+// Étel szerkesztése (POST)
 app.post(BASE_PATH + '/crud/szerkesztes/:id', async (req, res) => {
   const etelId = req.params.id;
   const { nev, kategoriaid } = req.body;
 
   await db.query(
     'UPDATE etel SET nev = ?, kategoria_id = ? WHERE id = ?',
-    [nev.trim(), kategoriaid, etelId]
+    [nev, kategoriaid || null, etelId]
   );
 
   res.redirect(BASE_PATH + '/crud');
 });
 
-// Törlés
-app.get(BASE_PATH + '/crud/torles/:id', async (req, res) => {
-  await db.query('DELETE FROM etel WHERE id = ?', [
-    req.params.id,
-  ]);
+// Étel törlése
+
+app.post(BASE_PATH + '/crud/torles/:id', async (req, res) => {
+  const etelId = req.params.id;
+  await db.query('DELETE FROM etel WHERE id = ?', [etelId]);
   res.redirect(BASE_PATH + '/crud');
 });
 
-// ------------------------
-// Kategóriák
-// ------------------------
-app.get(BASE_PATH + '/kategoria', async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      'SELECT * FROM kategoria'
-    );
-    res.render('kategoria', {
-      kategoriak: rows,
-      title: 'Kategóriák',
-    });
-  } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .send('Hiba a kategóriák lekérdezésnél');
-  }
-});
 
-// ------------------------
-// Hozzávalók
-// ------------------------
-app.get(BASE_PATH + '/hozzavalo', async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      'SELECT * FROM hozzavalo'
-    );
-    res.render('hozzavalo', {
-      hozzavalok: rows,
-      title: 'Hozzávalók',
-    });
-  } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .send('Hiba a hozzávalók lekérdezésnél');
-  }
+app.get(BASE_PATH + '/crud/torles/:id', async (req, res) => {
+  const etelId = req.params.id;
+  await db.query('DELETE FROM etel WHERE id = ?', [etelId]);
+  res.redirect(BASE_PATH + '/crud');
 });
 
 // ------------------------
@@ -484,12 +492,10 @@ app.get(BASE_PATH + '/hozzavalo', async (req, res) => {
 // ------------------------
 app.get(BASE_PATH + '/hasznalt', async (req, res) => {
   try {
-    const [rows] = await db.query(
-      'SELECT * FROM hasznalt'
-    );
+    const [rows] = await db.query('SELECT * FROM hasznalt');
     res.render('hasznalt', {
-      hasznalt: rows,
       title: 'Használt hozzávalók',
+      hasznalt: rows,
     });
   } catch (err) {
     console.error(err);
@@ -500,45 +506,29 @@ app.get(BASE_PATH + '/hasznalt', async (req, res) => {
 });
 
 // ------------------------
-// Ételek + Hozzávalók összesítve
+// Ételek + hozzávalók összesítve
 // ------------------------
-app.get(BASE_PATH + '/etelek-hozzavalok-tomb', async (req, res) => {
+app.get(BASE_PATH + '/etelek-hozzavalok', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT 
-        e.id   AS etel_id,
-        e.nev  AS etel_nev,
-        k.nev  AS kategoria,
-        h.nev  AS hozzavalo_nev,
-        hu.mennyiseg,
-        hu.egyseg
-      FROM hasznalt hu
-      JOIN etel      e ON hu.etel_id      = e.id
-      JOIN hozzavalo h ON hu.hozzavalo_id = h.id
-      JOIN kategoria k ON e.kategoria_id  = k.id
-      ORDER BY e.id;
+      SELECT
+        e.nev AS etel_nev,
+        k.nev AS kategoria_nev,
+        GROUP_CONCAT(
+          CONCAT(h.nev, ' (', COALESCE(eh.mennyiseg, ''), ' ', COALESCE(eh.egyseg, ''), ')')
+          SEPARATOR ', '
+        ) AS hozzavalok
+      FROM etel e
+      LEFT JOIN kategoria k ON e.kategoria_id = k.id
+      LEFT JOIN etel_hozzavalo eh ON e.id = eh.etelid
+      LEFT JOIN hozzavalo h ON eh.hozzavaloid = h.id
+      GROUP BY e.id, e.nev, k.nev
+      ORDER BY e.nev;
     `);
 
-    const etelek = {};
-    rows.forEach((row) => {
-      if (!etelek[row.etel_id]) {
-        etelek[row.etel_id] = {
-          etel_id: row.etel_id,
-          etel_nev: row.etel_nev,
-          kategoria: row.kategoria,
-          hozzavalok: [],
-        };
-      }
-      etelek[row.etel_id].hozzavalok.push({
-        nev: row.hozzavalo_nev,
-        mennyiseg: row.mennyiseg,
-        egyseg: row.egyseg,
-      });
-    });
-
     res.render('etelek-hozzavalok', {
-      etelek: Object.values(etelek),
       title: 'Ételek és hozzávalók',
+      lista: rows,
     });
   } catch (err) {
     console.error('Hiba az összetett lekérdezésnél:', err);
@@ -549,8 +539,35 @@ app.get(BASE_PATH + '/etelek-hozzavalok-tomb', async (req, res) => {
 });
 
 // ------------------------
+// Admin oldal (csak adminnak)
+// ------------------------
+app.get(BASE_PATH + '/admin', adminRequired, async (req, res) => {
+  try {
+    const [userRows] = await db.query('SELECT COUNT(*) AS count FROM users');
+    const [messageRows] = await db.query('SELECT COUNT(*) AS count FROM uzenetek');
+    const [etelRows] = await db.query('SELECT COUNT(*) AS count FROM etel');
+
+    const stats = {
+      users: userRows[0].count,
+      messages: messageRows[0].count,
+      etelek: etelRows[0].count,
+    };
+
+    res.render('admin', {
+      title: 'Admin',
+      stats,
+    });
+  } catch (err) {
+    console.error('Admin oldal hiba:', err);
+    res
+      .status(500)
+      .send('Hiba történt az admin oldal betöltésekor.');
+  }
+});
+
+// ------------------------
 // Szerver indítása
 // ------------------------
 app.listen(PORT, () => {
-  console.log(`Szerver fut: http://localhost:${PORT}`);
+  console.log(`Szerver fut: http://localhost:${PORT}${BASE_PATH}`);
 });

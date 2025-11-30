@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Kategóriák</title>
-    <link rel="stylesheet" href="/css/yummy-red.css">
+    <link rel="stylesheet" href="<%= basePath %>/css/yummy-red.css">
 </head>
 <body>
 
@@ -11,11 +11,12 @@
 
 <main>
     <h2>Kategóriák</h2>
-    <table class="table">
+    <table>
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Név</th>
+                <th>Leírás</th>
             </tr>
         </thead>
         <tbody>
@@ -23,6 +24,7 @@
             <tr>
                 <td><%= k.id %></td>
                 <td><%= k.nev %></td>
+                <td><%= k.leiras || '' %></td>
             </tr>
             <% }) %>
         </tbody>

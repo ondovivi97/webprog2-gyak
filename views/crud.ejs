@@ -30,7 +30,7 @@
           <tr>
             <td><%= e.id %></td>
             <td><%= e.nev %></td>
-            <td><%= e.kategoria %></td>
+            <td><%= e.kategoria_nev || '' %></td>
             <td>
               <a href="<%= basePath %>/crud/szerkesztes/<%= e.id %>" class="btn btn-sm btn-primary">Szerkesztés</a>
               <a href="<%= basePath %>/crud/torles/<%= e.id %>" class="btn btn-sm btn-danger"

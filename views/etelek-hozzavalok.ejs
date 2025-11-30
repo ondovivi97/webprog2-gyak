@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Ételek és Hozzávalók</title>
-    <link rel="stylesheet" href="/css/yummy-red.css">
+    <link rel="stylesheet" href="<%= basePath %>/css/yummy-red.css">
 </head>
 <body>
 
@@ -11,28 +11,24 @@
 
 <main>
     <h2>Ételek és Hozzávalók</h2>
-    <% etelek.forEach(etel => { %>
-        <h3><%= etel.etel_nev %> (<%= etel.kategoria %>)</h3>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Hozzávaló</th>
-                    <th>Mennyiség</th>
-                    <th>Egység</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% etel.hozzavalok.forEach(h => { %>
-                <tr>
-                    <td><%= h.nev %></td>
-                    <td><%= h.mennyiseg || '' %></td>
-                    <td><%= h.egyseg || '' %></td>
-                </tr>
-                <% }) %>
-            </tbody>
-        </table>
-        <br>
-    <% }) %>
+    <table>
+        <thead>
+            <tr>
+                <th>Étel név</th>
+                <th>Kategória</th>
+                <th>Hozzávalók</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% lista.forEach(sor => { %>
+            <tr>
+                <td><%= sor.etel_nev %></td>
+                <td><%= sor.kategoria_nev %></td>
+                <td><%= sor.hozzavalok %></td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
 </main>
 
 <%- include('partials/footer') %>
