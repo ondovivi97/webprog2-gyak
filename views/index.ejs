@@ -1,39 +1,94 @@
 <!DOCTYPE html>
 <html lang="hu">
-<head>
-  <meta charset="UTF-8">
-  <title>Főoldal</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="<%= basePath %>/css/main.css">
-  <link rel="stylesheet" href="<%= basePath %>/css/sajat.css">
-</head>
-<body>
-  <%- include('partials/header') %>
+  <head>
+    <meta charset="utf-8" />
+    <title><%= title || 'Főoldal' %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 
-  <main class="container">
-    <div class="text-center my-5">
-      <h1>Üdvözlünk a receptes oldalon!</h1>
-      <p class="lead">Böngészheted az ételek, kategóriák és hozzávalók listáját.</p>
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Saját CSS-ek -->
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/sajat.css" />
+
+    <!-- Dimension téma CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <noscript><link rel="stylesheet" href="/assets/css/noscript.css" /></noscript>
+  </head>
+
+  <!-- Dimension a body-ra tesz egy osztályt -->
+  <body class="is-preload">
+    <!-- Wrapper (Dimension struktúra) -->
+    <div id="wrapper">
+
+      <!-- Felső „hero” rész, logó + szöveg + nav -->
+      <header id="header">
+        <div class="logo">
+          <!-- Icon a téma saját ikonfontjából -->
+          <span class="icon fa-gem"></span>
+        </div>
+        <div class="content">
+          <div class="inner">
+            <h1>Receptgyűjtemény</h1>
+            <p>
+              Válogatott ételek, kategóriák és hozzávalók egy helyen.<br />
+              Böngéssz a receptek között, vagy jelentkezz be, hogy mindent elérj!
+            </p>
+          </div>
+        </div>
+        <!-- Fő navigáció a főbb oldalakra -->
+        <nav>
+          <ul>
+            <li><a href="/receptek">Receptek</a></li>
+            <li><a href="/kategoria">Kategóriák</a></li>
+            <li><a href="/hozzavalo">Hozzávalók</a></li>
+            <li><a href="/kapcsolat">Kapcsolat</a></li>
+            <li><a href="/crud">CRUD</a></li>
+          </ul>
+        </nav>
+      </header>
+
+      <!-- Main (ide tehetünk plusz tartalmat, ha szeretnénk) -->
+      <div id="main">
+        <article id="intro">
+          <h2 class="major">Üdv a receptoldalon!</h2>
+          <p>
+            Az oldalon az adatbázisban tárolt ételeket, kategóriákat és hozzávalókat tudod
+            megtekinteni. A felső menüből:
+          </p>
+          <ul>
+            <li><strong>Receptek</strong> – az összes étel listája, kategóriával és hozzávalókkal</li>
+            <li><strong>Kategóriák</strong> – levesek, tészták, egytálételek stb.</li>
+            <li><strong>Hozzávalók</strong> – az adatbázisban szereplő alapanyagok</li>
+            <li><strong>CRUD</strong> – ételek adminisztrációja (hozzáadás, módosítás, törlés)</li>
+            <li><strong>Kapcsolat</strong> – üzenet küldése az oldal készítőinek</li>
+          </ul>
+          <p class="mt-3">
+            Ha szükséges, a <a href="/regisztracio">regisztráció</a> és
+            <a href="/login">bejelentkezés</a> oldalakon tudsz felhasználót létrehozni,
+            illetve belépni.
+          </p>
+        </article>
+      </div>
     </div>
 
-    <div class="row text-center">
-      <div class="col-md-4 mb-3">
-        <img src="<%= basePath %>/images/etel1.jpg" class="img-fluid rounded" alt="Étel 1">
-        <p class="mt-2">Étel 1</p>
-      </div>
-      <div class="col-md-4 mb-3">
-        <img src="<%= basePath %>/images/etel2.png" class="img-fluid rounded" alt="Étel 2">
-        <p class="mt-2">Étel 2</p>
-      </div>
-      <div class="col-md-4 mb-3">
-        <img src="<%= basePath %>/images/etel3.png" class="img-fluid rounded" alt="Étel 3">
-        <p class="mt-2">Étel 3</p>
-      </div>
-    </div>
-  </main>
+    <!-- Háttér (Dimension magic) -->
+    <div id="bg"></div>
 
-  <%- include('partials/footer') %>
+    <!-- Dimension JS-ek -->
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/browser.min.js"></script>
+    <script src="/assets/js/breakpoints.min.js"></script>
+    <script src="/assets/js/util.js"></script>
+    <script src="/assets/js/main.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+    <!-- Bootstrap JS (opcionális, ha használod a JS-es komponenseket) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+  </body>
 </html>
